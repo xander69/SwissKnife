@@ -7,6 +7,9 @@ temp/
 .mvn/
 mvnw*
 
+swiss-knife*.log
+swiss-knife*.properties
+
 ### IntelliJ IDEA ###
 .idea
 *.iws

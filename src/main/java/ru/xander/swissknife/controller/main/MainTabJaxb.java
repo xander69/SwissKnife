@@ -20,6 +20,8 @@ public class MainTabJaxb {
     }
 
     private void initializeTab() {
+        main.textJaxbWsdlPath.textProperty().bindBidirectional(main.state.jaxbWsdlPathProperty());
+        main.textJaxbSrcPath.textProperty().bindBidirectional(main.state.jaxbSrcPathProperty());
         main.buttonChooseWsdlPath.setOnAction(event -> chooseWsdlPath());
         main.buttonChooseSrcPath.setOnAction(event -> chooseSourcePath());
     }
