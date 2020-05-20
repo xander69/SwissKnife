@@ -31,7 +31,7 @@ public class SwissKnifePrimaryStageInitializer implements ApplicationListener<Sw
         Stage stage = event.getStage();
         stage.setTitle("Swiss Knife");
         stage.setMinWidth(MIN_WIDTH);
-        stage.setMaxHeight(MIN_HEIGHT);
+        stage.setMinHeight(MIN_HEIGHT);
 
         FxControllerAndView<MainController, Node> controllerAndView = fxWeaver.load(MainController.class);
         controllerAndView.getView().ifPresent(parent -> {

@@ -4,6 +4,9 @@ import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import lombok.Setter;
@@ -12,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.xander.swissknife.configuration.SwissKnifeState;
 import ru.xander.swissknife.controller.main.MainTabJaxb;
+import ru.xander.swissknife.controller.main.MainTabProperties;
+import ru.xander.swissknife.dto.JavaProperty;
 
 /**
  * @author Alexander Shakhov
@@ -24,6 +29,23 @@ public class MainController {
 
     public final SwissKnifeState state;
 
+    @FXML
+    public TabPane tabPane;
+
+    //region tab java properties
+    @FXML
+    public Tab tabProperties;
+    @FXML
+    public TextField textJavaPropFilter;
+    @FXML
+    public TableView<JavaProperty> tableJavaProperties;
+    @FXML
+    public TableColumn<JavaProperty, String> columnPropName;
+    @FXML
+    public TableColumn<JavaProperty, String> columnPropValue;
+    //endregion tab java properties
+
+    //region tab jaxb generator
     @FXML
     public Tab tabJaxb;
     @FXML
@@ -42,6 +64,7 @@ public class MainController {
     public Button buttonWsImportHelp;
     @FXML
     public TextArea textJaxbLog;
+    //endregion tab jaxb generator
 
     @Autowired
     public MainController(SwissKnifeState state) {
@@ -50,6 +73,9 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        tabPane.getSelectionModel().select(state.getActiveTab());
+        state.activeTabProperty().bind(tabPane.getSelectionModel().selectedIndexProperty());
+        MainTabProperties.initialize(this);
         MainTabJaxb.initialize(this);
     }
 }
