@@ -22,13 +22,15 @@ import java.util.Properties;
 @Component
 public class SwissKnifeState {
 
-    private static final String KEY_JAXB_WSDL_PATH = "jaxb.wsdl.path";
-    private static final String KEY_JAXB_SRC_PATH = "jaxb.src.path";
+    private static final String KEY_JAXB_WSDL_FILE = "jaxb.wsdl.file";
+    private static final String KEY_JAXB_SOURCE_PATH = "jaxb.source.path";
+    private static final String KEY_JAXB_TARGET_PACKAGE = "jaxb.target.package";
 
     private final File stateFile;
 
-    private final StringProperty jaxbWsdlPath = new SimpleStringProperty("");
-    private final StringProperty jaxbSrcPath = new SimpleStringProperty("");
+    private final StringProperty jaxbWsdlFile = new SimpleStringProperty("");
+    private final StringProperty jaxbSourcePath = new SimpleStringProperty("");
+    private final StringProperty jaxbTargetPackage = new SimpleStringProperty("");
 
     public SwissKnifeState(@Value("${spring.profiles.active:default}") String profile) {
         this.stateFile = new File(System.getProperty("user.dir"), "swiss-knife-" + profile + ".properties");
@@ -41,8 +43,9 @@ public class SwissKnifeState {
             try (InputStream inputStream = new FileInputStream(stateFile)) {
                 Properties properties = new Properties();
                 properties.load(inputStream);
-                jaxbWsdlPath.setValue(properties.getProperty(KEY_JAXB_WSDL_PATH));
-                jaxbSrcPath.setValue(properties.getProperty(KEY_JAXB_SRC_PATH));
+                jaxbWsdlFile.setValue(properties.getProperty(KEY_JAXB_WSDL_FILE));
+                jaxbSourcePath.setValue(properties.getProperty(KEY_JAXB_SOURCE_PATH));
+                jaxbTargetPackage.setValue(properties.getProperty(KEY_JAXB_TARGET_PACKAGE));
             } catch (Exception e) {
                 log.warn("Cannot read properties from file {}", stateFile.getAbsolutePath(), e);
             }
@@ -54,8 +57,9 @@ public class SwissKnifeState {
         log.info("Save application properties.");
         try (OutputStream outputStream = new FileOutputStream(stateFile)) {
             Properties properties = new Properties();
-            properties.setProperty(KEY_JAXB_WSDL_PATH, jaxbWsdlPath.getValue());
-            properties.setProperty(KEY_JAXB_SRC_PATH, jaxbSrcPath.getValue());
+            properties.setProperty(KEY_JAXB_WSDL_FILE, jaxbWsdlFile.getValue());
+            properties.setProperty(KEY_JAXB_SOURCE_PATH, jaxbSourcePath.getValue());
+            properties.setProperty(KEY_JAXB_TARGET_PACKAGE, jaxbTargetPackage.getValue());
             properties.store(outputStream, null);
         } catch (Exception e) {
             log.warn("Cannot properties from file {}", stateFile.getAbsolutePath(), e);
@@ -64,29 +68,42 @@ public class SwissKnifeState {
 
     //region getters and setters
 
-    public String getJaxbWsdlPath() {
-        return jaxbWsdlPath.get();
+    public String getJaxbWsdlFile() {
+        return jaxbWsdlFile.get();
     }
 
-    public StringProperty jaxbWsdlPathProperty() {
-        return jaxbWsdlPath;
+    public StringProperty jaxbWsdlFileProperty() {
+        return jaxbWsdlFile;
     }
 
-    public void setJaxbWsdlPath(String jaxbWsdlPath) {
-        this.jaxbWsdlPath.set(jaxbWsdlPath);
+    public void setJaxbWsdlFile(String jaxbWsdlFile) {
+        this.jaxbWsdlFile.set(jaxbWsdlFile);
     }
 
-    public String getJaxbSrcPath() {
-        return jaxbSrcPath.get();
+    public String getJaxbSourcePath() {
+        return jaxbSourcePath.get();
     }
 
-    public StringProperty jaxbSrcPathProperty() {
-        return jaxbSrcPath;
+    public StringProperty jaxbSourcePathProperty() {
+        return jaxbSourcePath;
     }
 
-    public void setJaxbSrcPath(String jaxbSrcPath) {
-        this.jaxbSrcPath.set(jaxbSrcPath);
+    public void setJaxbSourcePath(String jaxbSourcePath) {
+        this.jaxbSourcePath.set(jaxbSourcePath);
     }
+
+    public String getJaxbTargetPackage() {
+        return jaxbTargetPackage.get();
+    }
+
+    public StringProperty jaxbTargetPackageProperty() {
+        return jaxbTargetPackage;
+    }
+
+    public void setJaxbTargetPackage(String jaxbTargetPackage) {
+        this.jaxbTargetPackage.set(jaxbTargetPackage);
+    }
+
 
     //endregion
 }

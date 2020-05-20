@@ -22,22 +22,26 @@ public class MainController {
     @Setter
     public Scene scene;
 
+    public final SwissKnifeState state;
+
     @FXML
     public Tab tabJaxb;
     @FXML
-    public TextField textJaxbWsdlPath;
+    public TextField textJaxbWsdlFile;
     @FXML
-    public Button buttonChooseWsdlPath;
+    public TextField textJaxbSourcePath;
     @FXML
-    public TextField textJaxbSrcPath;
+    public TextField textJaxbTargetPackage;
     @FXML
-    public Button buttonChooseSrcPath;
+    public Button buttonChooseWsdlFile;
+    @FXML
+    public Button buttonChooseSourcePath;
     @FXML
     public Button buttonJaxbGenerate;
     @FXML
+    public Button buttonWsImportHelp;
+    @FXML
     public TextArea textJaxbLog;
-
-    public final SwissKnifeState state;
 
     @Autowired
     public MainController(SwissKnifeState state) {
