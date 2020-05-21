@@ -57,7 +57,7 @@
                     <content>
                         <BorderPane prefHeight="200.0" prefWidth="200.0">
                             <center>
-                                <TextArea fx:id="textJaxbLog" prefHeight="568.0" prefWidth="1240.0" BorderPane.alignment="CENTER"/>
+                                <TextArea fx:id="textJaxbLog" prefHeight="568.0" prefWidth="1240.0" wrapText="true" BorderPane.alignment="CENTER"/>
                             </center>
                             <top>
                                 <GridPane hgap="10.0" BorderPane.alignment="CENTER">

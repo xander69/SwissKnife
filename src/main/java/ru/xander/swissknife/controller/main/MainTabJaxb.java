@@ -1,19 +1,28 @@
 package ru.xander.swissknife.controller.main;
 
-import javafx.scene.control.TextArea;
+import javafx.animation.AnimationTimer;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.springframework.util.StringUtils;
 import ru.xander.swissknife.controller.MainController;
+import ru.xander.swissknife.util.Background;
 import ru.xander.swissknife.util.Dialog;
+import ru.xander.swissknife.util.FxUtil;
+import ru.xander.swissknife.util.Util;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author Alexander Shakhov
  */
-@SuppressWarnings("WeakerAccess")
 public class MainTabJaxb {
 
     private static final Font FONT_CONSOLAS = Font.font("Consolas");
@@ -21,6 +30,9 @@ public class MainTabJaxb {
     private final MainController main;
     private final FileChooser wsdlChooser = new FileChooser();
     private final DirectoryChooser sourceChooser = new DirectoryChooser();
+
+    private BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
+    private AnimationTimer timer;
 
     private MainTabJaxb(MainController main) {
         this.main = main;
@@ -37,19 +49,39 @@ public class MainTabJaxb {
 
         main.textJaxbLog.setFont(FONT_CONSOLAS);
         main.textJaxbLog.setEditable(false);
+        main.textJaxbLog.setContextMenu(createLogContextMenu());
 
         wsdlChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("WSDL and XSD", "*.wsdl;*.xsd"),
                 new FileChooser.ExtensionFilter("WSDL", "*.wsdl"),
                 new FileChooser.ExtensionFilter("XSD", "*.xsd")
         );
+
+        timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                List<String> newStrings = new ArrayList<>();
+                logQueue.drainTo(newStrings);
+                StringBuilder sb = new StringBuilder();
+                newStrings.forEach(sb::append);
+                main.textJaxbLog.appendText(sb.toString());
+            }
+        };
+    }
+
+    private ContextMenu createLogContextMenu() {
+        ContextMenu menu = new ContextMenu();
+        MenuItem clearItem = new MenuItem("Clear log");
+        clearItem.setOnAction(event -> main.textJaxbLog.clear());
+        menu.getItems().add(clearItem);
+        return menu;
     }
 
     public static void initialize(MainController main) {
         new MainTabJaxb(main).initializeTab();
     }
 
-    public void chooseWsdlPath() {
+    private void chooseWsdlPath() {
         if (!StringUtils.isEmpty(main.textJaxbWsdlFile.getText())) {
             File initialFile = new File(main.textJaxbWsdlFile.getText());
             if (initialFile.exists()) {
@@ -64,7 +96,7 @@ public class MainTabJaxb {
         }
     }
 
-    public void chooseSourcePath() {
+    private void chooseSourcePath() {
         if (!StringUtils.isEmpty(main.textJaxbSourcePath.getText())) {
             File initialDirectory = new File(main.textJaxbSourcePath.getText());
             if (initialDirectory.exists()) {
@@ -89,12 +121,59 @@ public class MainTabJaxb {
                 .show();
     }
 
-    public void generateJaxbCode() {
-        TextArea textJaxbLog = main.textJaxbLog;
-        textJaxbLog.clear();
-        textJaxbLog.appendText(main.textJaxbWsdlFile.getText() + "\n");
-        textJaxbLog.appendText(main.textJaxbSourcePath.getText() + "\n");
-        textJaxbLog.appendText(main.textJaxbTargetPackage.getText() + "\n");
+    private void generateJaxbCode() {
+        if (StringUtils.isEmpty(main.textJaxbWsdlFile.getText())) {
+            Dialog.warning("Warning", "WSDL file cannot be null.");
+            return;
+        }
+        if (StringUtils.isEmpty(main.textJaxbSourcePath.getText())) {
+            Dialog.warning("Warning", "Source path cannot be null.");
+            return;
+        }
+
+        Background.runTask(
+                () -> {
+                    timer.start();
+                    main.showBackgroundIndicator();
+                    main.buttonJaxbGenerate.setDisable(true);
+                },
+                () -> {
+                    String wsImportCommand = buildWsImportCommand();
+
+                    logQueue.put("--------------------------------------------------------------------------\n");
+                    logQueue.put("Starting at " + LocalDateTime.now() + "...\n\n");
+                    logQueue.put(wsImportCommand + "\n");
+                    Process process = Runtime.getRuntime().exec(wsImportCommand);
+                    FxUtil.writeInputStream(logQueue, process.getInputStream());
+                    FxUtil.writeInputStream(logQueue, process.getErrorStream());
+                    logQueue.put("\n");
+
+                    return null;
+                },
+                () -> {
+                    timer.stop();
+                    main.hideBackgroundIndicator();
+                    main.buttonJaxbGenerate.setDisable(false);
+                });
+    }
+
+    private String buildWsImportCommand() {
+        StringBuilder command = new StringBuilder();
+        command.append(Util.getJdkBin().getAbsolutePath()).append(File.separator).append("wsimport");
+        command.append(" \"").append(main.textJaxbWsdlFile.getText()).append('"');
+        command.append(" -d \"").append(main.textJaxbSourcePath.getText()).append('"');
+        if (!StringUtils.isEmpty(main.textJaxbTargetPackage.getText())) {
+            command.append(" -p ").append(main.textJaxbTargetPackage.getText());
+        }
+        command.append(" -encoding UTF-8");
+        command.append(" -extension");
+        command.append(" -verbose");
+        command.append(" -extension");
+        command.append(" -keep");
+        command.append(" -XadditionalHeaders");
+        command.append(" -B-XautoNameResolution");
+        command.append(" -Xnocompile");
+        return command.toString();
     }
 
     private static final String WS_IMPORT_HELP = "Usage: wsimport [options] <WSDL_URI>\n" +

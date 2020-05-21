@@ -9,12 +9,24 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.BlockingQueue;
+
 /**
  * @author Alexander Shakhov
  */
 public final class FxUtil {
     private FxUtil() {
         throw new IllegalStateException("Utility class");
+    }
+
+    public static void writeInputStream(BlockingQueue<String> textQueue, InputStream inputStream) throws IOException, InterruptedException {
+        int len;
+        byte[] buffer = new byte[4096];
+        while ((len = inputStream.read(buffer)) != -1) {
+            textQueue.put(new String(buffer, 0, len));
+        }
     }
 
     public static void makeCopyable(TableView<?> tableView) {
