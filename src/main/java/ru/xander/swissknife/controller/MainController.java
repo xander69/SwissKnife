@@ -3,6 +3,8 @@ package ru.xander.swissknife.controller;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -31,6 +33,10 @@ public class MainController {
 
     @FXML
     public TabPane tabPane;
+    @FXML
+    public ProgressIndicator backgroundIndicator;
+    @FXML
+    public Label backgroundLabel;
 
     //region tab java properties
     @FXML
@@ -73,9 +79,22 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        hideBackgroundIndicator();
+        backgroundIndicator.setVisible(false);
+        backgroundLabel.setVisible(false);
         tabPane.getSelectionModel().select(state.getActiveTab());
         state.activeTabProperty().bind(tabPane.getSelectionModel().selectedIndexProperty());
         MainTabProperties.initialize(this);
         MainTabJaxb.initialize(this);
+    }
+
+    public void showBackgroundIndicator() {
+        backgroundIndicator.setVisible(true);
+        backgroundLabel.setVisible(true);
+    }
+
+    public void hideBackgroundIndicator() {
+        backgroundIndicator.setVisible(false);
+        backgroundLabel.setVisible(false);
     }
 }

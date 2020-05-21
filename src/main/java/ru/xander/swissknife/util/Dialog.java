@@ -1,8 +1,10 @@
 package ru.xander.swissknife.util;
 
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 /**
@@ -82,5 +84,26 @@ public abstract class Dialog {
 
     public static MessageDialog.Configurer message() {
         return new MessageDialog.Configurer();
+    }
+
+    public static void info(String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, content);
+        alert.setHeaderText(header);
+        alert.initStyle(StageStyle.UTILITY);
+        alert.showAndWait();
+    }
+
+    public static void warning(String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, content);
+        alert.setHeaderText(header);
+        alert.initStyle(StageStyle.UTILITY);
+        alert.showAndWait();
+    }
+
+    public static void error(String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, content);
+        alert.setHeaderText(header);
+        alert.initStyle(StageStyle.UTILITY);
+        alert.showAndWait();
     }
 }
