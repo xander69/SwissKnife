@@ -15,6 +15,7 @@ import lombok.Setter;
 import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.xander.swissknife.configuration.SwissKnifeConfiguration;
 import ru.xander.swissknife.configuration.SwissKnifeState;
 import ru.xander.swissknife.controller.main.MainTabJaxb;
 import ru.xander.swissknife.controller.main.MainTabProperties;
@@ -29,6 +30,7 @@ public class MainController {
     @Setter
     public Scene scene;
 
+    public final SwissKnifeConfiguration configuration;
     public final SwissKnifeState state;
 
     @FXML
@@ -75,7 +77,9 @@ public class MainController {
     //endregion tab jaxb generator
 
     @Autowired
-    public MainController(SwissKnifeState state) {
+    public MainController(SwissKnifeConfiguration configuration,
+                          SwissKnifeState state) {
+        this.configuration = configuration;
         this.state = state;
     }
 

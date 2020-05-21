@@ -12,7 +12,6 @@ import ru.xander.swissknife.controller.MainController;
 import ru.xander.swissknife.util.Background;
 import ru.xander.swissknife.util.Dialog;
 import ru.xander.swissknife.util.FxUtil;
-import ru.xander.swissknife.util.Util;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -180,7 +179,7 @@ public class MainTabJaxb {
 
         StringBuilder command = new StringBuilder();
         if (wsdlFile.toLowerCase().endsWith(".wsdl")) {
-            command.append(Util.getJdkBin().getAbsolutePath()).append(File.separator).append("wsimport");
+            command.append(main.configuration.getJavaBinPath()).append(File.separator).append("wsimport");
             command.append(" \"").append(wsdlFile).append('"');
             command.append(" -d \"").append(sourcePath).append('"');
             if (!StringUtils.isEmpty(targetPackage)) {
@@ -195,7 +194,7 @@ public class MainTabJaxb {
             command.append(" -B-XautoNameResolution");
             command.append(" -Xnocompile");
         } else {
-            command.append(Util.getJdkBin().getAbsolutePath()).append(File.separator).append("xjc");
+            command.append(main.configuration.getJavaBinPath()).append(File.separator).append("xjc");
             command.append(" \"").append(wsdlFile).append('"');
             command.append(" -d \"").append(sourcePath).append('"');
             if (!StringUtils.isEmpty(targetPackage)) {

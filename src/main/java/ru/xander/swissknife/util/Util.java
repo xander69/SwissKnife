@@ -1,6 +1,5 @@
 package ru.xander.swissknife.util;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -10,11 +9,6 @@ import java.io.StringWriter;
 public final class Util {
     private Util() {
         throw new IllegalStateException("Utility class");
-    }
-
-    public static File getJdkBin() {
-        File javaHome = new File(System.getProperty("java.home"));
-        return new File(javaHome.getParentFile(), "bin");
     }
 
     public static <T> T nvl(T value, T defaultValue) {
