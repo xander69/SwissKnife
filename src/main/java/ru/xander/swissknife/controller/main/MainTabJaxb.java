@@ -6,6 +6,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import ru.xander.swissknife.controller.MainController;
 import ru.xander.swissknife.util.Background;
@@ -23,6 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * @author Alexander Shakhov
  */
+@Slf4j
 public class MainTabJaxb {
 
     private static final Font FONT_CONSOLAS = Font.font("Consolas");
@@ -32,7 +34,7 @@ public class MainTabJaxb {
     private final DirectoryChooser sourceChooser = new DirectoryChooser();
 
     private BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
-    private AnimationTimer timer;
+    private AnimationTimer logTimer;
 
     private MainTabJaxb(MainController main) {
         this.main = main;
@@ -45,6 +47,7 @@ public class MainTabJaxb {
         main.buttonChooseWsdlFile.setOnAction(event -> chooseWsdlPath());
         main.buttonChooseSourcePath.setOnAction(event -> chooseSourcePath());
         main.buttonWsImportHelp.setOnAction(event -> showWsImportHelp());
+        main.buttonXjcHelp.setOnAction(event -> showXjcHelp());
         main.buttonJaxbGenerate.setOnAction(event -> generateJaxbCode());
 
         main.textJaxbLog.setFont(FONT_CONSOLAS);
@@ -57,7 +60,7 @@ public class MainTabJaxb {
                 new FileChooser.ExtensionFilter("XSD", "*.xsd")
         );
 
-        timer = new AnimationTimer() {
+        logTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 List<String> newStrings = new ArrayList<>();
@@ -121,6 +124,16 @@ public class MainTabJaxb {
                 .show();
     }
 
+    private void showXjcHelp() {
+        Dialog.message()
+                .title("XJC Help")
+                .content(XJC_HELP)
+                .width(655.0)
+                .height(800.0)
+                .font(FONT_CONSOLAS)
+                .show();
+    }
+
     private void generateJaxbCode() {
         if (StringUtils.isEmpty(main.textJaxbWsdlFile.getText())) {
             Dialog.warning("Warning", "WSDL file cannot be null.");
@@ -133,46 +146,64 @@ public class MainTabJaxb {
 
         Background.runTask(
                 () -> {
-                    timer.start();
                     main.showBackgroundIndicator();
                     main.buttonJaxbGenerate.setDisable(true);
                 },
                 () -> {
-                    String wsImportCommand = buildWsImportCommand();
+                    String generateCommand = makeGenerateCommand();
+                    log.info("Execute:\n{}", generateCommand);
 
+                    logTimer.start();
                     logQueue.put("--------------------------------------------------------------------------\n");
                     logQueue.put("Starting at " + LocalDateTime.now() + "...\n\n");
-                    logQueue.put(wsImportCommand + "\n");
-                    Process process = Runtime.getRuntime().exec(wsImportCommand);
+                    logQueue.put(generateCommand + "\n");
+                    Process process = Runtime.getRuntime().exec(generateCommand);
                     FxUtil.writeInputStream(logQueue, process.getInputStream());
                     FxUtil.writeInputStream(logQueue, process.getErrorStream());
-                    logQueue.put("\n");
+                    logQueue.put("\nFinished at " + LocalDateTime.now() + ".\n");
+
+                    Thread.sleep(500); // маленькая задержка, чтобы всё успело вывестить в лог
+                    logTimer.stop();
 
                     return null;
                 },
                 () -> {
-                    timer.stop();
                     main.hideBackgroundIndicator();
                     main.buttonJaxbGenerate.setDisable(false);
                 });
     }
 
-    private String buildWsImportCommand() {
+    private String makeGenerateCommand() {
+        final String wsdlFile = main.textJaxbWsdlFile.getText();
+        final String sourcePath = main.textJaxbSourcePath.getText();
+        final String targetPackage = main.textJaxbTargetPackage.getText();
+
         StringBuilder command = new StringBuilder();
-        command.append(Util.getJdkBin().getAbsolutePath()).append(File.separator).append("wsimport");
-        command.append(" \"").append(main.textJaxbWsdlFile.getText()).append('"');
-        command.append(" -d \"").append(main.textJaxbSourcePath.getText()).append('"');
-        if (!StringUtils.isEmpty(main.textJaxbTargetPackage.getText())) {
-            command.append(" -p ").append(main.textJaxbTargetPackage.getText());
+        if (wsdlFile.toLowerCase().endsWith(".wsdl")) {
+            command.append(Util.getJdkBin().getAbsolutePath()).append(File.separator).append("wsimport");
+            command.append(" \"").append(wsdlFile).append('"');
+            command.append(" -d \"").append(sourcePath).append('"');
+            if (!StringUtils.isEmpty(targetPackage)) {
+                command.append(" -p ").append(targetPackage);
+            }
+            command.append(" -encoding UTF-8");
+            command.append(" -extension");
+            command.append(" -verbose");
+            command.append(" -extension");
+            command.append(" -keep");
+            command.append(" -XadditionalHeaders");
+            command.append(" -B-XautoNameResolution");
+            command.append(" -Xnocompile");
+        } else {
+            command.append(Util.getJdkBin().getAbsolutePath()).append(File.separator).append("xjc");
+            command.append(" \"").append(wsdlFile).append('"');
+            command.append(" -d \"").append(sourcePath).append('"');
+            if (!StringUtils.isEmpty(targetPackage)) {
+                command.append(" -p ").append(targetPackage);
+            }
+            command.append(" -encoding UTF-8");
+            command.append(" -verbose");
         }
-        command.append(" -encoding UTF-8");
-        command.append(" -extension");
-        command.append(" -verbose");
-        command.append(" -extension");
-        command.append(" -keep");
-        command.append(" -XadditionalHeaders");
-        command.append(" -B-XautoNameResolution");
-        command.append(" -Xnocompile");
         return command.toString();
     }
 
@@ -230,4 +261,48 @@ public class MainTabJaxb {
             "Examples:\n" +
             "  wsimport stock.wsdl -b stock.xml -b stock.xjb\n" +
             "  wsimport -d generated http://example.org/stock?wsdl";
+
+    private static final String XJC_HELP = "Usage: xjc [-options ...] <schema file/URL/dir/jar> ... [-b <bindinfo>] ...\n" +
+            "If dir is specified, all schema files in it will be compiled.\n" +
+            "If jar is specified, /META-INF/sun-jaxb.episode binding file will be compiled.\n" +
+            "Options:\n" +
+            "  -nv                :  do not perform strict validation of the input schema(s)\n" +
+            "  -extension         :  allow vendor extensions - do not strictly follow the\n" +
+            "                        Compatibility Rules and App E.2 from the JAXB Spec\n" +
+            "  -b <file/dir>      :  specify external bindings files (each <file> must have its own -b)\n" +
+            "                        If a directory is given, **/*.xjb is searched\n" +
+            "  -d <dir>           :  generated files will go into this directory\n" +
+            "  -p <pkg>           :  specifies the target package\n" +
+            "  -httpproxy <proxy> :  set HTTP/HTTPS proxy. Format is [user[:password]@]proxyHost:proxyPort\n" +
+            "  -httpproxyfile <f> :  Works like -httpproxy but takes the argument in a file to protect password\n" +
+            "  -classpath <arg>   :  specify where to find user class files\n" +
+            "  -catalog <file>    :  specify catalog files to resolve external entity references\n" +
+            "                        support TR9401, XCatalog, and OASIS XML Catalog format.\n" +
+            "  -readOnly          :  generated files will be in read-only mode\n" +
+            "  -npa               :  suppress generation of package level annotations (**/package-info.java)\n" +
+            "  -no-header         :  suppress generation of a file header with timestamp\n" +
+            "  -target (2.0|2.1)  :  behave like XJC 2.0 or 2.1 and generate code that doesnt use any 2.2 features.\n" +
+            "  -encoding <encoding> :  specify character encoding for generated source files\n" +
+            "  -enableIntrospection :  enable correct generation of Boolean getters/setters to enable Bean Introspection apis\n" +
+            "  -disableXmlSecurity  :  disables XML security features when parsing XML documents\n" +
+            "  -contentForWildcard  :  generates content property for types with multiple xs:any derived elements\n" +
+            "  -xmlschema         :  treat input as W3C XML Schema (default)\n" +
+            "  -relaxng           :  treat input as RELAX NG (experimental,unsupported)\n" +
+            "  -relaxng-compact   :  treat input as RELAX NG compact syntax (experimental,unsupported)\n" +
+            "  -dtd               :  treat input as XML DTD (experimental,unsupported)\n" +
+            "  -wsdl              :  treat input as WSDL and compile schemas inside it (experimental,unsupported)\n" +
+            "  -verbose           :  be extra verbose\n" +
+            "  -quiet             :  suppress compiler output\n" +
+            "  -help              :  display this help message\n" +
+            "  -version           :  display version information\n" +
+            "  -fullversion       :  display full version information\n" +
+            "\n" +
+            "\n" +
+            "Extensions:\n" +
+            "  -Xinject-code      :  inject specified Java code fragments into the generated code\n" +
+            "  -Xlocator          :  enable source location support for generated code\n" +
+            "  -Xsync-methods     :  generate accessor methods with the 'synchronized' keyword\n" +
+            "  -mark-generated    :  mark the generated code as @javax.annotation.Generated\n" +
+            "  -episode <FILE>    :  generate the episode file for separate compilation\n" +
+            "  -Xpropertyaccessors :  Use XmlAccessType PROPERTY instead of FIELD for generated classes";
 }

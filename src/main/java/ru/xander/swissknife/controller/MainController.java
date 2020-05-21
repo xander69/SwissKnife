@@ -69,6 +69,8 @@ public class MainController {
     @FXML
     public Button buttonWsImportHelp;
     @FXML
+    public Button buttonXjcHelp;
+    @FXML
     public TextArea textJaxbLog;
     //endregion tab jaxb generator
 

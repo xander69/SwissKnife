@@ -63,8 +63,8 @@
                                 <GridPane hgap="10.0" BorderPane.alignment="CENTER">
                                     <columnConstraints>
                                         <ColumnConstraints hgrow="SOMETIMES" maxWidth="615.0" minWidth="10.0" prefWidth="93.0"/>
-                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1005.0" minWidth="10.0" prefWidth="1005.0"/>
-                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="945.0" minWidth="10.0" prefWidth="104.0"/>
+                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1005.0" minWidth="10.0" prefWidth="980.0"/>
+                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="945.0" minWidth="10.0" prefWidth="128.0"/>
                                     </columnConstraints>
                                     <rowConstraints>
                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
@@ -85,7 +85,8 @@
                                         <Button fx:id="buttonChooseWsdlFile" mnemonicParsing="false" text="Choose..." GridPane.columnIndex="2"/>
                                         <Button fx:id="buttonChooseSourcePath" mnemonicParsing="false" text="Choose..." GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                                         <Button fx:id="buttonJaxbGenerate" mnemonicParsing="false" text="Generate" GridPane.rowIndex="3"/>
-                                        <Button fx:id="buttonWsImportHelp" mnemonicParsing="false" text="WSImport Help" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3"/>
+                                        <Button fx:id="buttonWsImportHelp" mnemonicParsing="false" text="WSImport Help..." GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="3"/>
+                                        <Button fx:id="buttonXjcHelp" mnemonicParsing="false" text="XJC Help..." GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3"/>
                                     </children>
                                 </GridPane>
                             </top>
